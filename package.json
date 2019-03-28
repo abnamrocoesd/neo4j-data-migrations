@@ -4,7 +4,7 @@
   "description": "Easy data migration system for neo4j graphs.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha  --require @babel/register"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -25,15 +25,11 @@
     "neo4j-driver": "^1.7.3"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.4.0",
-    "@babel/node": "^7.2.2",
-    "@babel/preset-env": "^7.4.2",
-    "@babel/register": "^7.4.0",
     "chai": "^4.2.0",
     "eslint": "^5.15.3",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.16.0",
-    "mocha": "^6.0.2"
+    "mocha": "^6.0.2",
+    "rimraf": "^2.6.3"
   }
 }

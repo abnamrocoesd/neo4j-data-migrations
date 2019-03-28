@@ -1,11 +1,17 @@
+const assert = require('assert');
+const setup = require('./setup');
 
-const Migrate = {
-  setup: () => {},
+module.exports = {
   configure: () => {},
-  app: () => {},
-  all: () => {},
-};
-
-export default {
-  Migrate,
+  setup,
+  app: (app, prefix) => {
+    assert.ok(app);
+    console.log(`migrate ${app}`);
+    if (prefix) {
+      console.log(`towards ${prefix}`);
+    }
+  },
+  all: () => {
+    console.log('migrate all');
+  },
 };
