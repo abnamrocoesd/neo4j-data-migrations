@@ -1,0 +1,26 @@
+{
+  "name": "neo4j-data-migrations",
+  "version": "0.0.1",
+  "description": "Easy data migration system for neo4j graphs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@localhost:9022/~c61560/neo4j-data-migrations.git"
+  },
+  "keywords": [
+    "neo4j",
+    "graph",
+    "migration"
+  ],
+  "author": "Remco Hendriks, ABN AMRO Bank 2019",
+  "license": "MIT",
+  "bin": {
+    "neo4j-data-migrate": "./bin/migrate.js"
+  },
+  "dependencies": {
+    "neo4j-driver": "^1.7.3"
+  }
+}
