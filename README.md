@@ -46,7 +46,7 @@ Note that, if the system has already migrated past the specified migration, it w
 
 You can also just give prefixes of migrations, to save typing:
 
-`./neo4j-data-migrate myapp 0002`
+`neo4j-data-migrate myapp 0002`
 
 ## Options
 
@@ -77,3 +77,11 @@ Migrate.all(); // Migrate all apps at once.
 Migrate.app('myapp', 0002) // Migrate myapp to 0002.
 Migrate.app('myapp, 'zero') // Migrate myapp to zero.
 ```
+
+# License
+
+MIT
+
+# Author
+
+Remco Hendriks, ABN AMRO Bank 2019.
