@@ -4,17 +4,39 @@ const assert = require('assert');
 
 const FILE_NAME_REGEX = /^(\d+)_\S+\.js$/;
 
+async function migrationStatus(driver, appName) {
+  const session = driver.session();
+  const migrationHistory = await session.run('MATCH (m:__dm {app: {appName} }) RETURN PROPERTIES(m) AS migration', { appName });
+  session.close();
+  return migrationHistory.records
+    .map(record => record.get('migration'))
+    .sort((a, b) => a.migration.localeCompare(b.migration));
+}
+
 /**
- * Expose the root command.
+ * Reads out the base directory for other directories
+ * @param {String} dir absolute path to migrations directory
+ * @returns {[String]} directory names
  */
-
-exports = module.exports = new Migrate();
+function readDirs(dir) {
+  return fs.readdirSync(dir)
+    .filter(file => fs.statSync(path.join(dir, file)).isDirectory());
+}
 
 /**
- * Export `Migrate`
+ * Reads out a subdirectory for migration files.
+ * Files must be in following file name format: [digit]_[verbose].js
+ * Example: 0001_add_users.js
+ * @param {String} dir absolute path to migration app directory
+ * @returns {[String]} sorted array of tuples in format [prefix, filename]
  */
-
-exports.Migrate = Migrate;
+function readFiles(dir) {
+  return fs.readdirSync(dir)
+    .filter(file => !fs.statSync(path.join(dir, file)).isDirectory()
+      && file.match(FILE_NAME_REGEX))
+    .map(file => ({ migration: file.match(FILE_NAME_REGEX)[1], file }))
+    .sort((a, b) => a.migration.localeCompare(b.migration));
+}
 
 /**
  * Initialize a new `Migrate` instance.
@@ -62,7 +84,7 @@ Migrate.prototype.configure = function (dir) {
   }
 
   try {
-    this.driver = require(configPath)(); // eslint-disable-line global-require, import/no-dynamic-require
+    this.driver = require(configPath)(); // eslint-disable-line global-require, import/no-dynamic-require, max-len
   } catch (err) {
     console.error(`Failed to load configuration at ${configPath}. Exiting.`);
     console.error('Error information:');
@@ -82,7 +104,7 @@ Migrate.prototype.configure = function (dir) {
 Migrate.prototype.close = function () {
   this.driver.close();
   return true;
-}
+};
 
 /**
  * Forwards all migrations for all apps.
@@ -104,7 +126,7 @@ Migrate.prototype.app = async function (appName, prefix) {
   assert(this.configPath);
 
   if (!prefix || !prefix.match(/^(\d+)|zero$/)) {
-    console.error(`Prefix is not a number or 'zero'. Exiting.`);
+    console.error('Prefix is not a number or \'zero\'. Exiting.');
     return false;
   }
 
@@ -141,40 +163,14 @@ Migrate.prototype.app = async function (appName, prefix) {
   return true;
 };
 
-async function migrationStatus(driver, appName) {
-  const session = driver.session();
-  let migrationHistory = await session.run('MATCH (m:__dm {app: {appName} }) RETURN PROPERTIES(m) AS migration', {appName});
-  session.close();
-  return migrationHistory.records
-    .map(record => record.get('migration'))
-    .sort((a, b) => a.migration.localeCompare(b.migration));
-}
+/**
+ * Expose the root command.
+ */
+
+module.exports = new Migrate();
 
 /**
- * Reads out the base directory for other directories
- * @param {String} dir absolute path to migrations directory
- * @returns {[String]} directory names
+ * Export `Migrate`
  */
-function readDirs(dir) {
-  return fs.readdirSync(dir)
-    .filter(file => fs.statSync(path.join(dir, file)).isDirectory());
-}
 
-/**
- * Reads out a subdirectory for migration files.
- * Files must be in following file name format: [digit]_[verbose].js
- * Example: 0001_add_users.js
- * @param {String} dir absolute path to migration app directory
- * @returns {[String]} sorted array of tuples in format [prefix, filename]
- */
-function readFiles(dir) {
-  return fs.readdirSync(dir)
-    .filter(file =>
-      !fs.statSync(path.join(dir, file)).isDirectory() &&
-      file.match(FILE_NAME_REGEX)
-    )
-    .map(file =>
-     ({ migration: file.match(FILE_NAME_REGEX)[1], file })
-    )
-    .sort((a, b) => a.migration.localeCompare(b.migration));
-}
+exports.Migrate = Migrate;
