@@ -6,11 +6,32 @@ const FILE_NAME_REGEX = /^(\d+)_\S+\.js$/;
 
 async function migrationStatus(driver, appName) {
   const session = driver.session();
-  const migrationHistory = await session.run('MATCH (m:__dm {app: {appName} }) RETURN PROPERTIES(m) AS migration', { appName });
+  const migrationHistory = await session.run(
+    'MATCH (m:__dm {app: {appName} }) RETURN PROPERTIES(m) AS migration',
+    { appName },
+  );
   session.close();
   return migrationHistory.records
     .map(record => record.get('migration'))
     .sort((a, b) => a.migration.localeCompare(b.migration));
+}
+
+async function forwardMigration(driver, appName, migration) {
+  const session = driver.session();
+  await session.run(
+    'CREATE (m:__dm {app: {appName}, migration: {migration}})',
+    { appName, migration },
+  );
+  session.close();
+}
+
+async function backwardMigration(driver, appName, migration) {
+  const session = driver.session();
+  await session.run(
+    'MATCH (m:__dm {app: {appName}, migration: {migration}}) DELETE m',
+    { appName, migration },
+  );
+  session.close();
 }
 
 /**
@@ -36,6 +57,32 @@ function readFiles(dir) {
       && file.match(FILE_NAME_REGEX))
     .map(file => ({ migration: file.match(FILE_NAME_REGEX)[1], file }))
     .sort((a, b) => a.migration.localeCompare(b.migration));
+}
+
+/**
+ * Injects the migration file.
+ * @param {String} path absolute path to migration file
+ */
+function loadFile(filePath) {
+  let file = false;
+  try {
+    file = require(filePath); // eslint-disable-line global-require, import/no-dynamic-require, max-len
+  } catch (err) {
+    console.error(`Failed to load migration file ${filePath}`);
+    console.error('Error information:');
+    console.error(err);
+    return false;
+  }
+
+  if (
+    !Object.prototype.hasOwnProperty.call(file, 'forward')
+    || !Object.prototype.hasOwnProperty.call(file, 'backward')
+  ) {
+    console.error(`Failed to prepare migration file ${filePath}`);
+    console.error('Forward and / or backward function not found.');
+    return false;
+  }
+  return file;
 }
 
 /**
@@ -88,7 +135,7 @@ Migrate.prototype.configure = function (dir) {
   } catch (err) {
     console.error(`Failed to load configuration at ${configPath}. Exiting.`);
     console.error('Error information:');
-    console.error(err.trace);
+    console.error(err);
     return false;
   }
 
@@ -125,40 +172,95 @@ Migrate.prototype.all = async function () {
 Migrate.prototype.app = async function (appName, prefix) {
   assert(this.configPath);
 
-  if (!prefix || !prefix.match(/^(\d+)|zero$/)) {
+  // If a prefix is supplied, it must be any string of digits or string 'zero'.
+  if (prefix && !prefix.match(/^(\d+)|zero$/)) {
     console.error('Prefix is not a number or \'zero\'. Exiting.');
     return false;
   }
 
   const dbMigrationStatus = await migrationStatus(this.driver, appName);
   const migrationFiles = readFiles(path.join(this.configPath, appName));
-  const dbTip = dbMigrationStatus[dbMigrationStatus.length - 1];
-  const filesTip = migrationFiles[migrationFiles.length - 1];
+  const dbTip = dbMigrationStatus[dbMigrationStatus.length - 1] || { migration: '0' }; // latest migration in DB
+  const filesTip = migrationFiles[migrationFiles.length - 1]; // latest file migration
   const tipDiff = dbTip.migration.localeCompare(filesTip.migration);
   let target = filesTip;
+  let direction = 0;
+  let migrations = [];
 
-  if (prefix) {
-    target = prefix;
+  if (!prefix) {
+    target = filesTip.migration;
+  } else {
+    // default format of prefix is four digits with leading zero's.
+    target = prefix.padStart(4, 0);
   }
 
+  // 'zero' means to revert everything, which is not at migration 0, but before 0.
   if (prefix === 'zero') {
-    target = -1;
+    target = '-1';
   }
 
+  // is -1 for backwards, 1 for forwards, 0 for up-to-date
+  direction = target.localeCompare(dbTip.migration);
+
+  // if the DB is ahead of the migration files, do nothing.
   if (tipDiff > 0) {
     console.info(`App '${appName}' is ahead of the migration files.`);
     console.info(`Tip of migration history: ${dbTip.migration}, tip of migration files: ${filesTip.migration}`);
     return true;
   }
 
-  if (tipDiff === 0) {
+  // Either up-to-date or target is identical to tip.
+  if (direction === 0) {
     console.info(`App '${appName}' is up-to-date at ${dbTip.migration}.`);
     return true;
   }
 
-  console.info(`Running migrations for '${appName}'.`);
-  console.info(`Current migration: ${dbTip.migration}, target migration: ${prefix}`);
+  // migrate forwards.
+  if (direction > 0) {
+    migrations = migrationFiles
+      .filter(file => file.migration > dbTip.migration && file.migration <= target);
+  }
 
+  // migrate backwards.
+  if (direction < 0) {
+    migrations = migrationFiles
+      .filter(file => file.migration <= dbTip.migration && file.migration > target)
+      .reverse();
+  }
+
+  // inject files and check for consistency.
+  migrations = migrations.map((file) => {
+    file.fn = loadFile(path.resolve(this.configPath, appName, file.file));
+    return file;
+  });
+
+  // all migration files must be in correct format, to prevent faulty intermittent states.
+  if (migrations.find(file => file.fn === false)) {
+    console.error('One or more migration files are incompatible. Check error messages above. Exiting.');
+    return false;
+  }
+
+  console.info(`Running migrations for '${appName}'.`);
+  console.info(`Current migration: ${dbTip.migration}, target migration: ${target}`);
+  if (direction > 0) {
+    console.info('Forwarding migrations...');
+  } else {
+    console.info('Backwarding migrations...');
+  }
+
+  for (let i = 0; i < migrations.length; i += 1) {
+    /* eslint-disable no-await-in-loop */
+    const migration = migrations[i];
+    console.info(` - ${migration.migration}: ${migration.fn.name}`);
+    if (direction > 0) {
+      await migration.fn.forward(this.driver);
+      await forwardMigration(this.driver, appName, migration.migration);
+    } else {
+      await migration.fn.backward(this.driver);
+      await backwardMigration(this.driver, appName, migration.migration);
+    }
+    /* eslint-enable no-await-in-loop */
+  }
 
   return true;
 };
