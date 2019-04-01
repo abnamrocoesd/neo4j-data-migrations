@@ -15,5 +15,6 @@ module.exports = {
   rules: {
     'import/no-unresolved': false,
     'no-console': 'off',
+    'no-param-reassign': ['error', {'props': false }],
   },
 };
