@@ -4,7 +4,7 @@
   "description": "Easy data migration system for neo4j graphs.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "nyc mocha"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,16 @@
   "bin": {
     "neo4j-data-migrate": "./bin/migrate.js"
   },
+  "nyc": {
+    "exclude": [
+      "chai-test/**",
+      "test/**"
+    ],
+    "reporter": [
+      "html",
+      "text"
+    ]
+  },
   "dependencies": {
     "commander": "^2.19.0",
     "neo4j-driver": "^1.7.3"
@@ -30,6 +40,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.16.0",
     "mocha": "^6.0.2",
+    "nyc": "^13.3.0",
     "rimraf": "^2.6.3"
   }
 }

@@ -4,6 +4,12 @@ const assert = require('assert');
 
 const FILE_NAME_REGEX = /^(\d+)_\S+\.js$/;
 
+/**
+ * Gets migration status for a given app.
+ * @param {*} driver neo4j bolt driver
+ * @param {*} appName app to check migration status for
+ * @returns object with keys: app, migration.
+ */
 async function migrationStatus(driver, appName) {
   const session = driver.session();
   const migrationHistory = await session.run(
@@ -16,6 +22,13 @@ async function migrationStatus(driver, appName) {
     .sort((a, b) => a.migration.localeCompare(b.migration));
 }
 
+/**
+ * Inserts a migration node into the DB
+ * @param {*} driver neo4j bolt driver
+ * @param {*} appName app to add migation node for
+ * @param {*} migration the migration number
+ * @returns none
+ */
 async function forwardMigration(driver, appName, migration) {
   const session = driver.session();
   await session.run(
@@ -25,6 +38,13 @@ async function forwardMigration(driver, appName, migration) {
   session.close();
 }
 
+/**
+ * Removes a migration node from the DB
+ * @param {*} driver neo4j bolt driver
+ * @param {*} appName app to add migation node for
+ * @param {*} migration the migration number
+ * @returns none
+ */
 async function backwardMigration(driver, appName, migration) {
   const session = driver.session();
   await session.run(
@@ -88,7 +108,6 @@ function loadFile(filePath) {
 /**
  * Initialize a new `Migrate` instance.
  */
-
 function Migrate() {
   this.DEFAULT_CONFIG_PATH = path.join(__dirname, 'defaults', 'default.configuration.js');
   this.configPath = '';
@@ -100,7 +119,6 @@ function Migrate() {
  * @param {String} dir path to migrations directory
  * @returns {bool}
  */
-
 Migrate.prototype.setup = function (dir) {
   assert.ok(dir);
 
@@ -121,7 +139,6 @@ Migrate.prototype.setup = function (dir) {
  * @param {String} dir path to migrations directory
  * @returns {bool}
  */
-
 Migrate.prototype.configure = function (dir) {
   assert.ok(dir);
   const configPath = path.resolve(dir, 'configuration.js');
@@ -147,7 +164,6 @@ Migrate.prototype.configure = function (dir) {
 /**
  * Closes the neo4j bolt driver.
  */
-
 Migrate.prototype.close = function () {
   this.driver.close();
   return true;
@@ -156,11 +172,12 @@ Migrate.prototype.close = function () {
 /**
  * Forwards all migrations for all apps.
  */
-
 Migrate.prototype.all = async function () {
   assert(this.configPath);
-  console.log('Migrate all');
-  console.log(this.apps);
+
+  for (let i = 0; i < this.apps.length; i += 1) {
+    await this.app(this.apps[i]); // eslint-disable-line no-await-in-loop
+  }
 };
 
 /**
@@ -168,7 +185,6 @@ Migrate.prototype.all = async function () {
  * @param {String} appName the app to migrate forward
  * @param {String} prefix the prefix number to migrate to
  */
-
 Migrate.prototype.app = async function (appName, prefix) {
   assert(this.configPath);
 
@@ -268,11 +284,9 @@ Migrate.prototype.app = async function (appName, prefix) {
 /**
  * Expose the root command.
  */
-
 module.exports = new Migrate();
 
 /**
  * Export `Migrate`
  */
-
 exports.Migrate = Migrate;
