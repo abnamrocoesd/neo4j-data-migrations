@@ -185,7 +185,7 @@ Migrate.prototype.destroy = function () {
 Migrate.prototype.status = async function (appName) {
   assert(appName);
   assert(this.configPath);
-  return await migrationStatus(this.driver, appName);
+  return migrationStatus(this.driver, appName);
 };
 
 
