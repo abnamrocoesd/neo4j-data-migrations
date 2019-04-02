@@ -58,6 +58,39 @@ The following options are available to change behaviour of the migration tool:
 
 If you want to add a data migration script, add a `.js` file with the appropriate prefix in the `datamigrations` and app (sub-)directory. You need to keep track of the increment of the prefix to ensure correct migration order.
 
+## Migration format
+
+Each migration file should export an anonymous object exposing three properties:
+- name {String} Verbose description of the migration
+- forward {async Function} Forward migration script, requires a `driver` parameter.
+- backward {async Function} Backwards migration script, requires a `driver` parameter.
+
+The `driver` parameter is used to handle neo4j migrations.
+
+Example migration file:
+
+```
+module.exports = {
+  name: 'Add users',
+  forward: async (driver) => {
+    driver.session();
+    await session.run(
+      'CREATE (user:User {name: {name}, age: {age}})',
+      { name: 'Username', age: 30 },
+    );
+    session.close();
+  },
+  backward: async (driver) => {
+    driver.session();
+    await session.run(
+      'MATCH (user:User {name: {name}}) DELETE user',
+      { name: 'Username' },
+    );
+    session.close();
+  },
+};
+```
+
 # Migration metadata storage
 
 The library keeps track of the migration schema in neo4j using nodes labeled `__dm`. Nodes are automatically created and removed by the library.
