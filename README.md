@@ -36,17 +36,13 @@ This will migrate the app myapp forwards through all the migrations. If you want
 
 This has the same effect as calling the first example for every app, and will deal with dependencies properly.
 
-You can also specify a specific migration to migrate to:
+You can also just give prefixes of migrations:
 
-`neo4j-data-migrate myapp 0002_add_users`
+`neo4j-data-migrate myapp 0002`
 
 Note that, if the system has already migrated past the specified migration, it will roll back to it instead. If you want to migrate all the way back, specify the special migration name zero:
 
 `neo4j-data-migrate myapp zero`
-
-You can also just give prefixes of migrations, to save typing:
-
-`neo4j-data-migrate myapp 0002`
 
 ## Options
 
