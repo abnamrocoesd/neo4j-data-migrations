@@ -2,7 +2,7 @@
 
 NodeJS library to allow easy data migrations for neo4j graph databases.
 
-Inspired by (https://south.readthedocs.io/en/latest/)[https://south.readthedocs.io/en/latest/]
+Inspired by (https://south.readthedocs.io/en/latest/)
 
 # Installation
 
@@ -18,7 +18,7 @@ This will add a `datamigrations` directory to the current working directory. Ins
 
 A connection is made to the neo4j database by means of the driver from the `neo4j-driver`. The configuration is stored in `datamigrations/configuration.js`.
 
-Refer to `https://neo4j.com/docs/api/javascript-driver/current/function/index.html#static-function-driver` for configuration of the driver.
+Refer to (https://neo4j.com/docs/api/javascript-driver/current/function/index.html#static-function-driver) for configuration of the driver.
 
 # Usage
 
