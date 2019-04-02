@@ -170,6 +170,15 @@ Migrate.prototype.close = function () {
 };
 
 /**
+ * Destroys Migrate instance, resetting properties.
+ */
+Migrate.prototype.destroy = function () {
+  this.configPath = '';
+  this.driver = false;
+}
+
+
+/**
  * Forwards all migrations for all apps.
  */
 Migrate.prototype.all = async function () {
@@ -280,6 +289,7 @@ Migrate.prototype.app = async function (appName, prefix) {
 
   return true;
 };
+
 
 /**
  * Expose the root command.

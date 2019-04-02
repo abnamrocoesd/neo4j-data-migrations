@@ -11,6 +11,7 @@ describe('Setup', function() {
 
   after(() => {
     // remove TEST_DIR if made.
+    Migrate.destroy();
     if (fs.existsSync(TEST_DIR)) {
       rimraf.sync(TEST_DIR);
     }
