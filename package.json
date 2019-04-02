@@ -41,6 +41,7 @@
     "eslint-plugin-import": "^2.16.0",
     "mocha": "^6.0.2",
     "nyc": "^13.3.0",
-    "rimraf": "^2.6.3"
+    "rimraf": "^2.6.3",
+    "sinon": "^7.3.1"
   }
 }

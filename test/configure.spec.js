@@ -40,7 +40,7 @@ describe('Configure', function() {
   });
 
   it('should fail to obtain driver handle if configuration file is faulty.', function() {
-    const configure = Migrate.configure('test/mock');
+    const configure = Migrate.configure('test/mock-faulty');
     expect(configure).to.be.false;
     expect(Migrate.driver).to.be.false;
 

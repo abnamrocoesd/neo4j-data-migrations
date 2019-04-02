@@ -175,32 +175,49 @@ Migrate.prototype.close = function () {
 Migrate.prototype.destroy = function () {
   this.configPath = '';
   this.driver = false;
-}
+};
+
+/**
+ * Shows the migration history of an app.
+ * @param {String} appName the app to fetch migration history for
+ * @returns array of objects with keys migration and app, sorted on migration number.
+ */
+Migrate.prototype.status = async function (appName) {
+  assert(appName);
+  assert(this.configPath);
+  return await migrationStatus(this.driver, appName);
+};
 
 
 /**
  * Forwards all migrations for all apps.
+ * @returns {Number} number of migrations applied.
  */
 Migrate.prototype.all = async function () {
   assert(this.configPath);
+  let migrationsApplied = 0;
 
   for (let i = 0; i < this.apps.length; i += 1) {
-    await this.app(this.apps[i]); // eslint-disable-line no-await-in-loop
+    migrationsApplied += await this.app(this.apps[i]); // eslint-disable-line no-await-in-loop
   }
+
+  return migrationsApplied;
 };
 
 /**
  * Forwards or backwards `appName` to optional `prefix` migration.
  * @param {String} appName the app to migrate forward
  * @param {String} prefix the prefix number to migrate to
+ * @returns {Number} number of migrations applied.
  */
 Migrate.prototype.app = async function (appName, prefix) {
+  assert(appName);
   assert(this.configPath);
 
   // If a prefix is supplied, it must be any string of digits or string 'zero'.
   if (prefix && !prefix.match(/^(\d+)|zero$/)) {
     console.error('Prefix is not a number or \'zero\'. Exiting.');
-    return false;
+    return 0;
   }
 
   const dbMigrationStatus = await migrationStatus(this.driver, appName);
@@ -231,13 +248,13 @@ Migrate.prototype.app = async function (appName, prefix) {
   if (tipDiff > 0) {
     console.info(`App '${appName}' is ahead of the migration files.`);
     console.info(`Tip of migration history: ${dbTip.migration}, tip of migration files: ${filesTip.migration}`);
-    return true;
+    return 0;
   }
 
   // Either up-to-date or target is identical to tip.
   if (direction === 0) {
     console.info(`App '${appName}' is up-to-date at ${dbTip.migration}.`);
-    return true;
+    return 0;
   }
 
   // migrate forwards.
@@ -262,7 +279,7 @@ Migrate.prototype.app = async function (appName, prefix) {
   // all migration files must be in correct format, to prevent faulty intermittent states.
   if (migrations.find(file => file.fn === false)) {
     console.error('One or more migration files are incompatible. Check error messages above. Exiting.');
-    return false;
+    return 0;
   }
 
   console.info(`Running migrations for '${appName}'.`);
@@ -287,7 +304,8 @@ Migrate.prototype.app = async function (appName, prefix) {
     /* eslint-enable no-await-in-loop */
   }
 
-  return true;
+  // return the number of migrations done.
+  return migrations.length;
 };
 
 
