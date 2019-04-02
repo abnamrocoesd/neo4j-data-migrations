@@ -102,9 +102,11 @@ It is possible to programmaticaly use the migration library by means of dependen
 ```
 import Migrate from 'neo4j-data-migration';
 
+Migrate.configure(__dirname);
 Migrate.all(); // Migrate all apps at once.
-Migrate.app('myapp', 0002) // Migrate myapp to 0002.
+Migrate.app('myapp', '0002') // Migrate myapp to 0002.
 Migrate.app('myapp, 'zero') // Migrate myapp to zero.
+Migrate.close();
 ```
 
 # License
