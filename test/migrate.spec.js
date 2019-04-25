@@ -8,7 +8,7 @@ const Migrate = require('../src/index');
 
 const TEST_DIR = 'chai-test';
 
-describe('Configure', function() {
+describe('Migrate', function() {
 
   before(() => {
     Migrate.setup(TEST_DIR);

@@ -1,5 +1,3 @@
-const neo4j = require('neo4j-driver').v1;
-
 // in-memory migration status DB
 let migrations = {};
 
@@ -10,7 +8,7 @@ let migrations = {};
  */
 module.exports = () => ({
   session: () => ({
-    run: (query, args) => {
+    run: async (query, args) => {
       if (query.startsWith('MATCH') && query.endsWith('DELETE m')) {
         // remove migration
         if (!migrations[args.appName]) {
@@ -50,7 +48,7 @@ module.exports = () => ({
         return;
       }
     },
-    close: () => (true),
+    close: (cb) => cb(),
   }),
   close: () => (true),
 });
