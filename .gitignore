@@ -1,0 +1,8 @@
+.DS_Store
+.npmrc
+.nyc_output
+build
+coverage
+datamigrations
+logs
+node_modules
