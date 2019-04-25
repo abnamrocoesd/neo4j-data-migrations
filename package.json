@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@localhost:9022/~c61560/neo4j-data-migrations.git"
+    "url": "git://github.com/abnamrocoesd/neo4j-data-migrations.git"
   },
   "keywords": [
     "neo4j",
