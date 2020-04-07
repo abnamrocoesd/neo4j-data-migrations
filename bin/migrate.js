@@ -22,17 +22,32 @@ const Migrate = require('../src');
 
   if (!program.args.length) {
     // Forward all apps
-    return Migrate.all().then(() => { Migrate.close(); });
+    return Migrate.all()
+      .then(() => { Migrate.close(); })
+      .catch(err => {
+        console.error(err);
+        process.exit(1);
+      });
   }
 
   if (program.args.length === 1) {
     // Forward specific app
-    return Migrate.app(program.args[0]).then(() => { Migrate.close(); });
+    return Migrate.app(program.args[0])
+      .then(() => { Migrate.close(); })
+      .catch(err => {
+        console.error(err);
+        process.exit(1);
+      });
   }
 
   if (program.args.length === 2) {
     // Migrate specific app to point
-    return Migrate.app(program.args[0], program.args[1]).then(() => { Migrate.close(); });
+    return Migrate.app(program.args[0], program.args[1])
+      .then(() => { Migrate.close(); })
+      .catch(err => {
+        console.error(err);
+        process.exit(1);
+      });
   }
 
   return true;
