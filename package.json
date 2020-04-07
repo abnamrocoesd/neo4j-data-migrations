@@ -31,17 +31,17 @@
     ]
   },
   "dependencies": {
-    "commander": "^2.19.0",
-    "neo4j-driver": "^1.7.3"
+    "commander": "^2.20.3",
+    "neo4j-driver": "^1.7.6"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "eslint": "^5.15.3",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.16.0",
-    "mocha": "^6.0.2",
-    "nyc": "^13.3.0",
-    "rimraf": "^2.6.3",
-    "sinon": "^7.3.1"
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.20.2",
+    "mocha": "^6.2.3",
+    "nyc": "^15.0.1",
+    "rimraf": "^2.7.1",
+    "sinon": "^7.5.0"
   }
 }

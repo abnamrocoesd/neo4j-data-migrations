@@ -11,7 +11,7 @@ const FILE_NAME_REGEX = /^(\d+)_\S+\.js$/;
  * @returns object with keys: app, migration.
  */
 function migrationStatus(driver, appName) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const session = driver.session();
     session.run(
       'MATCH (m:__dm {app: {appName} }) RETURN PROPERTIES(m) AS migration',
@@ -23,7 +23,7 @@ function migrationStatus(driver, appName) {
           .sort((a, b) => a.migration.localeCompare(b.migration)));
       });
     })
-      .catch(console.error);
+      .catch(reject);
   });
 }
 
