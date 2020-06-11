@@ -6,9 +6,9 @@ Inspired by (https://south.readthedocs.io/en/latest/)
 
 # Requirements
 
-Neo4j version 3.
+Neo4j version 4.
 
-Look at version 1.1 for usage with neo4j version 4.
+Look at version 1.0 for usage with neo4j version 3.
 
 # Installation
 
@@ -67,7 +67,7 @@ Each migration file should export an anonymous object exposing three properties:
 - forward {async Function} Forward migration script, requires a `driver` parameter.
 - backward {async Function} Backwards migration script, requires a `driver` parameter.
 
-The `driver` parameter is used to handle neo4j migrations.
+The `driver` parameter is used to handle neo4j migrations. It accepts a `database` parameter to select a database.
 
 Example migration file:
 
@@ -75,7 +75,9 @@ Example migration file:
 module.exports = {
   name: 'Add users',
   forward: async (driver) => {
-    driver.session();
+    driver.session({
+      database: 'movies',
+    });
     await session.run(
       'CREATE (user:User {name: {name}, age: {age}})',
       { name: 'Username', age: 30 },
@@ -83,7 +85,9 @@ module.exports = {
     session.close();
   },
   backward: async (driver) => {
-    driver.session();
+    driver.session({
+      database: 'movies',
+    });
     await session.run(
       'MATCH (user:User {name: {name}}) DELETE user',
       { name: 'Username' },
