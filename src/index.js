@@ -14,7 +14,7 @@ function migrationStatus(driver, appName) {
   return new Promise((resolve, reject) => {
     const session = driver.session();
     session.run(
-      'MATCH (m:__dm {app: {appName} }) RETURN PROPERTIES(m) AS migration',
+      'MATCH (m:__dm {app: $appName }) RETURN PROPERTIES(m) AS migration',
       { appName },
     ).then((migrationHistory) => {
       session.close(() => {
@@ -38,7 +38,7 @@ function forwardMigration(driver, appName, migration) {
   return new Promise((resolve) => {
     const session = driver.session();
     session.run(
-      'CREATE (m:__dm {app: {appName}, migration: {migration}})',
+      'CREATE (m:__dm {app: $appName, migration: {migration}})',
       { appName, migration },
     ).then(() => {
       session.close(resolve);
@@ -57,7 +57,7 @@ function backwardMigration(driver, appName, migration) {
   return new Promise((resolve) => {
     const session = driver.session();
     session.run(
-      'MATCH (m:__dm {app: {appName}, migration: {migration}}) DELETE m',
+      'MATCH (m:__dm {app: $appName, migration: {migration}}) DELETE m',
       { appName, migration },
     ).then(() => {
       session.close(resolve);
