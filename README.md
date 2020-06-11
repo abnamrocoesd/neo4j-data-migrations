@@ -4,6 +4,12 @@ NodeJS library to allow easy data migrations for neo4j graph databases.
 
 Inspired by (https://south.readthedocs.io/en/latest/)
 
+# Requirements
+
+Neo4j version 3.
+
+Look at version 1.1 for usage with neo4j version 4.
+
 # Installation
 
 Install package:
