@@ -1,6 +1,6 @@
 {
   "name": "neo4j-data-migrations",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Easy data migration system for neo4j graphs.",
   "main": "index.js",
   "scripts": {
