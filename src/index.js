@@ -16,12 +16,11 @@ function migrationStatus(driver, appName) {
     session.run(
       'MATCH (m:__dm {app: $appName }) RETURN PROPERTIES(m) AS migration',
       { appName },
-    ).then((migrationHistory) => {
-      session.close(() => {
-        resolve(migrationHistory.records
-          .map(record => record.get('migration'))
-          .sort((a, b) => a.migration.localeCompare(b.migration)));
-      });
+    ).then(async (migrationHistory) => {
+      await session.close();
+      resolve(migrationHistory.records
+        .map(record => record.get('migration'))
+        .sort((a, b) => a.migration.localeCompare(b.migration)));
     })
       .catch(reject);
   });
@@ -40,8 +39,9 @@ function forwardMigration(driver, appName, migration) {
     session.run(
       'CREATE (m:__dm {app: $appName, migration: {migration}})',
       { appName, migration },
-    ).then(() => {
-      session.close(resolve);
+    ).then(async () => {
+      await session.close();
+      resolve();
     }).catch(console.error);
   });
 }
@@ -59,8 +59,9 @@ function backwardMigration(driver, appName, migration) {
     session.run(
       'MATCH (m:__dm {app: $appName, migration: {migration}}) DELETE m',
       { appName, migration },
-    ).then(() => {
-      session.close(resolve);
+    ).then(async () => {
+      await session.close();
+      resolve();
     }).catch(console.error);
   });
 }

@@ -48,7 +48,7 @@ module.exports = () => ({
         return;
       }
     },
-    close: (cb) => cb(),
+    close: () => (true),
   }),
   close: () => (true),
 });
