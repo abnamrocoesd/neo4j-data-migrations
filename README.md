@@ -8,7 +8,7 @@ Inspired by (https://south.readthedocs.io/en/latest/)
 
 Neo4j version 3.
 
-Look at version 1.1 for usage with neo4j version 4.
+Look at version 2.x for usage with neo4j version 4.
 
 # Installation
 
