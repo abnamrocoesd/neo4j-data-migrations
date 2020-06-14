@@ -10,20 +10,22 @@ const FILE_NAME_REGEX = /^(\d+)_\S+\.js$/;
  * @param {*} appName app to check migration status for
  * @returns object with keys: app, migration.
  */
-function migrationStatus(driver, appName) {
-  return new Promise((resolve, reject) => {
+async function migrationStatus(driver, appName) {
+  let migrationHistory;
+  try {
     const session = driver.session();
-    session.run(
+    migrationHistory = await session.run(
       'MATCH (m:__dm {app: $appName }) RETURN PROPERTIES(m) AS migration',
       { appName },
-    ).then(async (migrationHistory) => {
-      await session.close();
-      resolve(migrationHistory.records
-        .map(record => record.get('migration'))
-        .sort((a, b) => a.migration.localeCompare(b.migration)));
-    })
-      .catch(reject);
-  });
+    );
+    await session.close();
+  } catch (error) {
+    console.err(error);
+  }
+
+  return migrationHistory.records
+    .map(record => record.get('migration'))
+    .sort((a, b) => a.migration.localeCompare(b.migration));
 }
 
 /**
@@ -33,17 +35,17 @@ function migrationStatus(driver, appName) {
  * @param {*} migration the migration number
  * @returns none
  */
-function forwardMigration(driver, appName, migration) {
-  return new Promise((resolve) => {
+async function forwardMigration(driver, appName, migration) {
+  try {
     const session = driver.session();
-    session.run(
-      'CREATE (m:__dm {app: $appName, migration: {migration}})',
+    await session.run(
+      'CREATE (m:__dm {app: $appName, migration: $migration})',
       { appName, migration },
-    ).then(async () => {
-      await session.close();
-      resolve();
-    }).catch(console.error);
-  });
+    );
+    await session.close();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 /**
@@ -53,17 +55,17 @@ function forwardMigration(driver, appName, migration) {
  * @param {*} migration the migration number
  * @returns none
  */
-function backwardMigration(driver, appName, migration) {
-  return new Promise((resolve) => {
+async function backwardMigration(driver, appName, migration) {
+  try {
     const session = driver.session();
-    session.run(
-      'MATCH (m:__dm {app: $appName, migration: {migration}}) DELETE m',
+    await session.run(
+      'MATCH (m:__dm {app: $appName, migration: $migration}) DELETE m',
       { appName, migration },
-    ).then(async () => {
-      await session.close();
-      resolve();
-    }).catch(console.error);
-  });
+    );
+    await session.close();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 /**

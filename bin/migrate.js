@@ -24,7 +24,7 @@ const Migrate = require('../src');
     // Forward all apps
     return Migrate.all()
       .then(() => { Migrate.close(); })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         process.exit(1);
       });
@@ -34,7 +34,7 @@ const Migrate = require('../src');
     // Forward specific app
     return Migrate.app(program.args[0])
       .then(() => { Migrate.close(); })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         process.exit(1);
       });
@@ -44,7 +44,7 @@ const Migrate = require('../src');
     // Migrate specific app to point
     return Migrate.app(program.args[0], program.args[1])
       .then(() => { Migrate.close(); })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         process.exit(1);
       });
