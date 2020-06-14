@@ -19,8 +19,8 @@ async function migrationStatus(driver, appName) {
       { appName },
     );
     await session.close();
-  } catch (error) {
-    console.err(error);
+  } catch (err) {
+    console.error(err);
   }
 
   return migrationHistory.records
