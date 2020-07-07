@@ -107,10 +107,10 @@ You can include the `neo4j-data-migrate` command in the deployment script of you
 
 # API usage
 
-It is possible to programmaticaly use the migration library by means of dependency injection. An example:
+It is possible to programmatically use the migration library by means of dependency injection. An example:
 
 ```
-import Migrate from 'neo4j-data-migration';
+import Migrate from 'neo4j-data-migrations';
 
 Migrate.configure(__dirname);
 Migrate.all(); // Migrate all apps at once.

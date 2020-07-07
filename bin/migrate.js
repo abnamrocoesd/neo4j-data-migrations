@@ -9,6 +9,7 @@ const Migrate = require('../src');
     .version(pkg.version)
     .option('-s, --setup', 'Setup data migrations')
     .option('-d, --dir [path]', 'Path to data migrations directory', './datamigrations')
+    .option('-g, --database [path]', 'Database to run migrations for')
     .parse(process.argv);
 
   if (program.setup) {
@@ -16,7 +17,7 @@ const Migrate = require('../src');
   }
 
   // Configure migrate instance
-  if (!Migrate.configure(program.dir)) {
+  if (!Migrate.configure(program.dir, program.database)) {
     return false;
   }
 
