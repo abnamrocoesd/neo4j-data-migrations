@@ -54,7 +54,8 @@ Note that, if the system has already migrated past the specified migration, it w
 
 The following options are available to change behaviour of the migration tool:
 
-- `-d [path]` Path to the migrations directory.
+- `-d, --dir [path]` Path to the migrations directory.
+- `-g, --databasse [name]` Name of database to run migrations for.
 
 # Adding migrations
 
