@@ -8,12 +8,13 @@ const FILE_NAME_REGEX = /^(\d+)_\S+\.js$/;
  * Gets migration status for a given app.
  * @param {*} driver neo4j bolt driver
  * @param {*} appName app to check migration status for
+ * @param database database to run migrations on
  * @returns object with keys: app, migration.
  */
-async function migrationStatus(driver, appName) {
+async function migrationStatus(driver, appName, database) {
   let migrationHistory;
   try {
-    const session = driver.session();
+    const session = driver.session({database});
     migrationHistory = await session.run(
       'MATCH (m:__dm {app: $appName }) RETURN PROPERTIES(m) AS migration',
       { appName },
@@ -33,11 +34,12 @@ async function migrationStatus(driver, appName) {
  * @param {*} driver neo4j bolt driver
  * @param {*} appName app to add migation node for
  * @param {*} migration the migration number
+ * @param database database to run migrations on
  * @returns none
  */
-async function forwardMigration(driver, appName, migration) {
+async function forwardMigration(driver, appName, migration, database) {
   try {
-    const session = driver.session();
+    const session = driver.session({database});
     await session.run(
       'CREATE (m:__dm {app: $appName, migration: $migration})',
       { appName, migration },
@@ -53,11 +55,12 @@ async function forwardMigration(driver, appName, migration) {
  * @param {*} driver neo4j bolt driver
  * @param {*} appName app to add migation node for
  * @param {*} migration the migration number
+ * @param database database to run migrations on
  * @returns none
  */
-async function backwardMigration(driver, appName, migration) {
+async function backwardMigration(driver, appName, migration, database) {
   try {
-    const session = driver.session();
+    const session = driver.session({database});
     await session.run(
       'MATCH (m:__dm {app: $appName, migration: $migration}) DELETE m',
       { appName, migration },
@@ -151,9 +154,10 @@ Migrate.prototype.setup = function (dir) {
 /**
  * Configures the neo4j bolt driver.
  * @param {String} dir path to migrations directory
+ * @param {String} database database to run migrations on
  * @returns {bool}
  */
-Migrate.prototype.configure = function (dir) {
+Migrate.prototype.configure = function (dir, database) {
   assert.ok(dir);
   const configPath = path.resolve(dir, 'configuration.js');
   if (!fs.existsSync(configPath)) {
@@ -172,6 +176,7 @@ Migrate.prototype.configure = function (dir) {
 
   this.configPath = dir;
   this.apps = readDirs(dir);
+  this.database = database;
   return true;
 };
 
@@ -199,7 +204,7 @@ Migrate.prototype.destroy = function () {
 Migrate.prototype.status = async function (appName) {
   assert(appName);
   assert(this.configPath);
-  return migrationStatus(this.driver, appName);
+  return migrationStatus(this.driver, appName, this.database);
 };
 
 
@@ -234,7 +239,7 @@ Migrate.prototype.app = async function (appName, prefix) {
     return 0;
   }
 
-  const dbMigrationStatus = await migrationStatus(this.driver, appName);
+  const dbMigrationStatus = await migrationStatus(this.driver, appName, this.database);
   const migrationFiles = readFiles(path.join(this.configPath, appName));
   const dbTip = dbMigrationStatus[dbMigrationStatus.length - 1] || { migration: '0' }; // latest migration in DB
   const filesTip = migrationFiles[migrationFiles.length - 1]; // latest file migration
@@ -310,10 +315,10 @@ Migrate.prototype.app = async function (appName, prefix) {
     console.info(` - ${migration.migration}: ${migration.fn.name}`);
     if (direction > 0) {
       await migration.fn.forward(this.driver);
-      await forwardMigration(this.driver, appName, migration.migration);
+      await forwardMigration(this.driver, appName, migration.migration, this.database);
     } else {
       await migration.fn.backward(this.driver);
-      await backwardMigration(this.driver, appName, migration.migration);
+      await backwardMigration(this.driver, appName, migration.migration, this.database);
     }
     /* eslint-enable no-await-in-loop */
   }
