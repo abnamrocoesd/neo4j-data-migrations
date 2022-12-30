@@ -39,7 +39,7 @@
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.21.2",
-    "mocha": "^6.2.3",
+    "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "rimraf": "^2.7.1",
     "sinon": "^7.5.0"
